@@ -40,11 +40,6 @@ class SpiralMemory {
 
 }
 
-class SpiralMemoryPartTwo {
-    fun getGridSize(startPosition: Int): Int {
-        return calculateLayer(startPosition)
-    }
-}
 
 fun calculateLayer(gridPosition: Int) = ceil((-4 + sqrt(16.0 + (16.0 * (gridPosition - 1)))) / 8).toInt()
 
@@ -79,16 +74,3 @@ class SpiralMemoryTest {
     }
 }
 
-
-class SpiralMemoryPartTwoTest {
-
-    private val spiralMemory = SpiralMemoryPartTwo()
-
-    @Test
-    fun checkGridSize() {
-        assertEquals(1, spiralMemory.getGridSize(1))
-        assertEquals(2, spiralMemory.getGridSize(2))
-        assertEquals(2, spiralMemory.getGridSize(9))
-    }
-
-}
