@@ -3,7 +3,9 @@ package main
 import org.junit.Test
 import java.util.ArrayList
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.max
+import kotlin.math.sqrt
 import kotlin.test.assertEquals
 
 
@@ -18,28 +20,41 @@ class SpiralMemoryPartTwo {
         grid += innerArray
     }
 
+    fun keepGoingUntilGreaterThan(limit : Int) : Int {
+        var currentPos = 2
+        while(true) {
+            if (getValueAt(currentPos) > limit) break
+            currentPos++
+        }
+        return getValueAt(currentPos)
+    }
 
     fun getValueAt(position: Int): Int {
         var myLayer = calculateLayer(position)
-        while (position >= hwm) {
+        while (position > hwm) {
             hwm++
-             myLayer = calculateLayer(hwm)
+            myLayer = calculateLayer(hwm)
             val myCoords = getCoOrdinatesGivenAPosition(hwm - 1, myLayer)
 
             if (myLayer == grid.size) {
                 grid += arrayListOf<Int>()
+                for (i in 1..(myLayer * 2 + 1) * (myLayer * 2 + 1) - (myLayer * 2 - 1) * (myLayer * 2 - 1)) {
+                    grid[myLayer].add(0)
+                }
             }
-
             val score = calcScore(myLayer, myCoords)
-            val arrayLayer = grid[myCoords.first]
-            arrayLayer.add(score)
+
+            val pos = mapCoOrdToLayerAndPosition(myCoords.first, myCoords.second)
+
+            val arrayLayer = grid[myLayer]
+            arrayLayer[pos.second] = score
         }
 
-        return getValueAtPosition(getCoOrdinatesGivenAPosition(position - 1, myLayer))
+        return getValueAtPosition(getCoOrdinatesGivenAPosition(position - 1, myLayer), myLayer)
     }
 
     fun calcScore(myLayer: Int, myCoords: Pair<Int, Int>) =
-        getNeighbours(myLayer, myCoords).sumBy { it -> getValueAtPosition(it) }
+            getNeighbours(myLayer, myCoords).sumBy { it -> getValueAtPosition(it, myLayer) }
 
 
     fun getNeighbours(myLayer: Int, myCoords: Pair<Int, Int>): List<Pair<Int, Int>> {
@@ -100,17 +115,18 @@ class SpiralMemoryPartTwo {
 
     private fun pos19(myNeighbours: MutableList<Pair<Int, Int>>, myCoords: Pair<Int, Int>) {
         myNeighbours += Pair(myCoords.first, myCoords.second + 1)
-        myNeighbours += Pair(myCoords.first - 1, myCoords.second + 1)
-        myNeighbours += Pair(myCoords.first - 1, myCoords.second)
+        myNeighbours += Pair(myCoords.first + 1, myCoords.second + 1)
+        myNeighbours += Pair(myCoords.first + 1, myCoords.second)
     }
 
     private fun pos17(myNeighbours: MutableList<Pair<Int, Int>>, myCoords: Pair<Int, Int>, layer: Int) {
         if (layer > 1) {
-            myNeighbours += Pair(myCoords.first - 1, myCoords.second - 1)
+            myNeighbours += Pair(myCoords.first + 1, myCoords.second - 1)
         }
         myNeighbours += Pair(myCoords.first, myCoords.second + 1)
-        myNeighbours += Pair(myCoords.first - 1, myCoords.second)
-        myNeighbours += Pair(myCoords.first - 1, myCoords.second + 1)
+        myNeighbours += Pair(myCoords.first + 1, myCoords.second)
+        myNeighbours += Pair(myCoords.first + 1, myCoords.second + 1)
+
     }
 
     private fun pos21(myNeighbours: MutableList<Pair<Int, Int>>, myCoords: Pair<Int, Int>) {
@@ -133,7 +149,7 @@ class SpiralMemoryPartTwo {
 
     private fun pos11(myNeighbours: MutableList<Pair<Int, Int>>, myCoords: Pair<Int, Int>, layer: Int) {
         if (layer > 1) {
-            myNeighbours += Pair(myCoords.first, myCoords.second + 1)
+            myNeighbours += Pair(myCoords.first, myCoords.second - 1)
             myNeighbours += Pair(myCoords.first - 1, myCoords.second - 1)
         }
         myNeighbours += Pair(myCoords.first - 1, myCoords.second)
@@ -177,7 +193,7 @@ class SpiralMemoryPartTwo {
     }
 
     private fun getCoOrdinatesGivenAPosition(position: Int, layer: Int) =
-        mapLayerAndPositionToCoOrd(layer, getPositionInLayer(position, layer))
+            mapLayerAndPositionToCoOrd(layer, getPositionInLayer(position, layer))
 
     fun getPositionInLayer(position: Int, layer: Int): Int {
         if (position == 0) return 0
@@ -186,12 +202,10 @@ class SpiralMemoryPartTwo {
     }
 
 
-    fun getValueAtPosition(xy: Pair<Int, Int>): Int {
-        if (xy.first < grid.size && xy.second < grid[xy.first].size) {
-            return grid[xy.first][xy.second]
-        } else {
-            throw Exception("coordinates not in grid")
-        }
+    fun getValueAtPosition(xy: Pair<Int, Int>, myLayer: Int): Int {
+        val pos = mapCoOrdToLayerAndPosition(xy.first, xy.second)
+        return grid[pos.first][pos.second]
+
     }
 
     fun getNumberOfEntriesInLayer(layer: Int): Int {
@@ -201,7 +215,7 @@ class SpiralMemoryPartTwo {
     fun mapLayerAndPositionToCoOrd(layer: Int, position: Int): Pair<Int, Int> {
         val x: Int = when (position) {
             in 0..(layer * 2 - 1), getNumberOfEntriesInLayer(layer) - 1 -> layer
-            in (layer * 3 + 1)..(layer * 6 - 1) -> -layer
+            in (layer * 4 - 1)..(layer * 6 - 1) -> -layer
             in 0..(layer * 4) -> (layer * 3 - 1) - position
             else -> position - (layer * 7 - 1)
         }
@@ -229,6 +243,9 @@ class SpiralMemoryPartTwo {
     }
 
     fun getLayer(x: Int, y: Int) = max(abs(x), abs(y))
+
+
+    fun calculateLayer(gridPosition: Int) = ceil((-4 + sqrt(16.0 + (16.0 * (gridPosition - 1)))) / 8).toInt()
 }
 
 
@@ -244,16 +261,16 @@ class SpiralMemoryPartTwoTest {
         assertEquals(24, spiralMemory.getNumberOfEntriesInLayer(3))
     }
 
-    @Test(expected = Exception::class)
-    fun checkGridSizeOutOfBoundsThrowsException() {
-        spiralMemory.getValueAtPosition(Pair(1, 1))
-    }
-
-    @Test
-    fun checkGridSize() {
-        val valueAtPosition = spiralMemory.getValueAtPosition(Pair(0, 0))
-        assertEquals(1, valueAtPosition)
-    }
+//    @Test(expected = Exception::class)
+//    fun checkGridSizeOutOfBoundsThrowsException() {
+//        spiralMemory.getValueAtPosition(Pair(1, 1), myLayer)
+//    }
+//
+//    @Test
+//    fun checkGridSize() {
+//        val valueAtPosition = spiralMemory.getValueAtPosition(Pair(0, 0), myLayer)
+//        assertEquals(1, valueAtPosition)
+//    }
 
     @Test
     fun checkMapCoOrdToLayerAndPosition() {
@@ -339,9 +356,36 @@ class SpiralMemoryPartTwoTest {
 
     @Test
     fun doesItWork() {
-//        assertEquals(1, spiralMemory.getValueAt(1))
-//        assertEquals(1, spiralMemory.getValueAt(2))
-//        assertEquals(2, spiralMemory.getValueAt(3))
+        assertEquals(1, spiralMemory.getValueAt(1))
+        assertEquals(1, spiralMemory.getValueAt(2))
+        assertEquals(2, spiralMemory.getValueAt(3))
         assertEquals(4, spiralMemory.getValueAt(4))
+        assertEquals(5, spiralMemory.getValueAt(5))
+        assertEquals(10, spiralMemory.getValueAt(6))
+        assertEquals(11, spiralMemory.getValueAt(7))
+        assertEquals(23, spiralMemory.getValueAt(8))
+        assertEquals(25, spiralMemory.getValueAt(9))
+        assertEquals(26, spiralMemory.getValueAt(10))
+        assertEquals(54, spiralMemory.getValueAt(11))
+        assertEquals(57, spiralMemory.getValueAt(12))
+        assertEquals(59, spiralMemory.getValueAt(13))
+        assertEquals(122, spiralMemory.getValueAt(14))
+        assertEquals(133, spiralMemory.getValueAt(15))
+        assertEquals(142, spiralMemory.getValueAt(16))
+        assertEquals(147, spiralMemory.getValueAt(17))
+        assertEquals(304, spiralMemory.getValueAt(18))
+        assertEquals(330, spiralMemory.getValueAt(19))
+        assertEquals(351, spiralMemory.getValueAt(20))
+        assertEquals(362, spiralMemory.getValueAt(21))
+        assertEquals(747, spiralMemory.getValueAt(22))
+        assertEquals(806, spiralMemory.getValueAt(23))
+    }
+
+    @Test
+    fun checkLimit() {
+//        assertEquals(304, spiralMemory.keepGoingUntilGreaterThan(147))
+//        assertEquals(806, spiralMemory.keepGoingUntilGreaterThan(800))
+        assertEquals(319900, spiralMemory.keepGoingUntilGreaterThan(312051))
     }
 }
+
