@@ -385,7 +385,7 @@ class SpiralMemoryPartTwoTest {
     fun checkLimit() {
 //        assertEquals(304, spiralMemory.keepGoingUntilGreaterThan(147))
 //        assertEquals(806, spiralMemory.keepGoingUntilGreaterThan(800))
-        assertEquals(319900, spiralMemory.keepGoingUntilGreaterThan(312051))
+        assertEquals(312453, spiralMemory.keepGoingUntilGreaterThan(312051))
     }
 }
 
