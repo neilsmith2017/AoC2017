@@ -10,19 +10,24 @@ class SpiralMemory {
 
     fun getShortestPath(startPosition: Int): Int {
 
-        val layer = calculateLayer(startPosition - 1)
+        val layer = calculateLayer(startPosition-0)
         val maxLayerValue = calcMaxLayerValue(layer)
         val targets = getTargets(layer, maxLayerValue)
 
         val distanceToTarget = targets
-            .map { abs(startPosition-1 - it) }
+            .map { abs(startPosition - 1 - it) }
             .min() ?: 0
 
         return layer + distanceToTarget
     }
 
     private fun getTargets(layer: Int, maxLayerValue: Int): List<Int> {
-        return listOf(getTarget(layer, maxLayerValue, 1),getTarget(layer, maxLayerValue, 3),getTarget(layer, maxLayerValue, 5),getTarget(layer, maxLayerValue, 7))
+        return listOf(
+            getTarget(layer, maxLayerValue, 1),
+            getTarget(layer, maxLayerValue, 3),
+            getTarget(layer, maxLayerValue, 5),
+            getTarget(layer, maxLayerValue, 7)
+        )
     }
 
     private fun getTarget(l: Int, c: Int, n: Int): Int {
@@ -33,10 +38,10 @@ class SpiralMemory {
         return (4 * layer * layer) + (4 * layer)
     }
 
-    fun calculateLayer(gridPosition: Int) = ceil((-4 + sqrt(16.0 + 16.0 * gridPosition)) / 8).toInt()
-
 }
 
+
+fun calculateLayer(gridPosition: Int) = ceil((-4 + sqrt(16.0 + (16.0 * (gridPosition - 1)))) / 8).toInt()
 
 class SpiralMemoryTest {
 
@@ -65,7 +70,7 @@ class SpiralMemoryTest {
     }
 
     private fun checkCalcLayer(startPosition: Int, expectedResult: Int) {
-        assertEquals(expectedResult, spiralMemory.calculateLayer(startPosition - 1))
+        assertEquals(expectedResult, calculateLayer(startPosition - 1))
     }
-
 }
+
